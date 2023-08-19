@@ -164,3 +164,4 @@ data/
 docs_sample/
 notebooks/edu
 notebooks/wandb
+src/chat_prompt.json
