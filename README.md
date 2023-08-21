@@ -17,7 +17,8 @@
 The notebooks in this repository are related to the topics covered in the [Theory of LLMs section](#theory-of-llms):
 * [0_using_APIs.ipynb](/notebooks/0_using_APIs.ipynb): covers [tokenisation](#predicting-the-next-token), calling an LLM from an API, and [sampling methods](#sampling-methods).
 * [1_generation.ipynb](/notebooks/1_generation.ipynb): covers [prompt engineering](#prompting-structure) (zero shot, few shot, adding context & response, and Level 5 prompting) for building a chatbot.
-
+* [2_retreival_qa.ipynb](/notebooks/2_retreival_qa.ipynb): covers 
+* 
 # Theory of LLMs
 
 For details about the transformer architecture of LLMs, click the [link](https://jalammar.github.io/illustrated-gpt2/).
@@ -102,7 +103,7 @@ Solutions:
   * This `prompt` is passed to the `LLM`, for generating an `answer` that is displayed to the user.
 
 <!-- Image  -->
-![Image of app architecture with vector database](images/app_architecture.png)
+![Image of app architecture with vector database](/images/app_architecture.png)
 
 
 ## Embeddings
