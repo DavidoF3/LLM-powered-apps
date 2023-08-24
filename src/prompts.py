@@ -90,10 +90,18 @@ def load_eval_prompt(f_name: Union[pathlib.Path, str] = None) -> ChatPromptTempl
         logger.warning(
             f"No human prompt provided. Using default human prompt from {__name__}"
         )
-
+        # human_template provides:
+        # - question from our evaluation dataset, 
+        # - the LLM answer
+        # - original answer
+        # - request model to provide the grade
         human_template = """\nQUESTION: {query}\nCHATBOT ANSWER: {result}\n
         ORIGINAL ANSWER: {answer} GRADE:"""
 
+    # Here, assuming that we are using a chat-based model for evaluation
+    # - so prompt consists of two parts: 
+    #    1) system message prompt - tells the LLM its role
+    #    2) human message prompt  - 
     system_message_prompt = SystemMessagePromptTemplate.from_template(
         """You are an evaluator for the W&B chatbot.You are given a question, the chatbot's answer, and the original answer, 
         and are asked to score the chatbot's answer as either CORRECT or INCORRECT. Note 
