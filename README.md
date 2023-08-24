@@ -11,6 +11,7 @@
   - [Embeddings](#embeddings)
   - [Vector databases / Embedding stores](#vector-databases--embedding-stores)
   - [Parsing Documents](#parsing-documents)
+- [Run](#run)
 
 # Notebooks
 
@@ -56,7 +57,7 @@ LLMs generate text through sampling. They produce a set of probabilities across 
 Training of LLMs consists of three main steps ([more details](https://arxiv.org/pdf/2203.02155.pdf)):
 1) Pre-training
    * Model learns from a massive dataset. Examples sources used: CommonCrawl, C4, Github, Wikipedia, Books, ArXiv, StackExchange.
-   * In this phase, the model can be good at predicting text text found in the pre-train dataset.
+   * In this phase, the model can be good at predicting text found in the pre-train dataset.
 2) Supervised instruction tuning
    * Model further trained on expert-generated question-answer paths. 
    * Helps to align model with user expectations and follow instructions.
@@ -172,3 +173,11 @@ Solutions:
 
 Check this [link](https://github.com/wandb/wandbot) for wandbot integration into Slack and Discord integrations. -->
 
+
+# Run
+
+```
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
