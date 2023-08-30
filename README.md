@@ -39,17 +39,17 @@ Basic process:
 
 LLMs generate text through sampling. They produce a set of probabilities across the vocabulary, and pick a toke to follow the input sequence. Different methods of sampling are:
 * **Greedy decoding** 
- * Pick tocken with highest probability.
+  * Pick token with highest probability.
 * **Beam search** 
- * Generate multiple candidate sequences to maximise probability of a sequence of tokens. Often leads to repetitions and lack of meaning.
+  * Generate multiple candidate sequences to maximise probability of a sequence of tokens. Often leads to repetitions and lack of meaning.
 * **Sampling with temperature**
- * Adjusting temp. affects token probabilities. 
-   * Higher values result in more diverse outputs, since tokens with lower probabilities get sampled. 
-   * Lower temps makes less probably tokens even less likely.
-   * As temp -> 0, it becomes more like **Greedy decoding**.
+  * Adjusting temp. affects token probabilities. 
+    * Higher values result in more diverse outputs, since tokens with lower probabilities get sampled. 
+    * Lower temps makes less probably tokens even less likely.
+    * As temp -> 0, it becomes more like **Greedy decoding**.
 * **Top p sampling** 
- * Only consider tokes with probabilities above a threshold. Hence, excludes tokens with low probabilities. 
- * Results in high quality generated text. 
+  * Only consider tokes with probabilities above a threshold. Hence, excludes tokens with low probabilities. 
+  * Results in high quality generated text. 
 
 
 ## Training
