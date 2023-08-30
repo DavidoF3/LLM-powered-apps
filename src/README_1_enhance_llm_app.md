@@ -75,7 +75,7 @@ We can experiment with different chain types available in `LangChain`. Different
 
 `Stuff`:
 * Baseline solution.
-* Stuff all related data into the prompt as context to pass to the LLM (see [1_generation.ipynb](../notebooks/1_generation.ipynb)).
+* Stuff all related data into the prompt as context to pass to the LLM (see [2_retreival_qa_llama2.ipynb](../notebooks/2_retreival_qa_llama2.ipynb)).
 
 `MapReduce`:
 * Opportunity - Extract relevant data 
