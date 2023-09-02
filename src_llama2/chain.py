@@ -10,8 +10,11 @@ from langchain.vectorstores import Chroma
 from prompts import load_chat_prompt
 import torch
 
+from langchain.callbacks import wandb_tracing_enabled
 from langchain.prompts import PromptTemplate
 import transformers
+
+from typing import List, Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -113,21 +116,32 @@ def load_chain(wandb_run: wandb.run, vector_store: Chroma, hf_auth: str):
         )
     llm = HuggingFacePipeline(pipeline=pipe)
 
-    # Load from json file !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    prompt_template = """<s>[INST] Use the following pieces of context to answer the question at the end.
-    If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    # Load system prompt template artifact
+    system_prompt_dir = wandb_run.use_artifact(
+        wandb_run.config.prompt_system_artifact, type="prompt"
+        ).download()
+    # Load user prompt template artifact
+    user_prompt_dir = wandb_run.use_artifact(
+        wandb_run.config.prompt_user_artifact, type="prompt"
+        ).download()   
 
-    {context}
+    # Read system prompt template          
+    with open(f"{system_prompt_dir}/prompt_system_template.txt", "r") as file:
+        system_prompt = file.read()
+    # Read user prompt template      
+    with open(f"{user_prompt_dir}/prompt_user_template.txt", "r") as file:
+        question_template = file.read()
 
-    Question: {question}
-    Helpful Answer:  [/INST]"""
+    # Prompt template taking inputs: chat history, user question and context to user question
+    prompt_template = """<s>[INST] <<SYS>>\\n""" + system_prompt + """\\n<</SYS>>\\n\\n{PAST_QA} """ + question_template + """[/INST]"""
+    # In prompt template - just pass entries that will change from question to question
+    prompt_tmp = PromptTemplate(
+        template=prompt_template, input_variables=["PAST_QA", "CONTEXT", "QUESTION"]
+        )
+    
+    return llm, prompt_tmp, retriever   
 
-    # In the prompt template we define two inputs: "context", "question"
-    prompt_template = PromptTemplate(
-        template=prompt_template, input_variables=["context", "question"]
-    )
-
-    return llm, prompt_template, retriever
+    # OLD - working code -------------------------------------------------------------------------------------------------------------------
 
     # # Load prompt artifact
     # chat_prompt_dir = wandb_run.use_artifact(
@@ -135,26 +149,27 @@ def load_chain(wandb_run: wandb.run, vector_store: Chroma, hf_auth: str):
     # ).download()
     # qa_prompt = load_chat_prompt(f"{chat_prompt_dir}/prompt.json")
 
-    # # ConversationalRetrievalChain
-    # # - utility defined in LangChain to respond to user questions
-    # # - main difference to RetrievalQA is that  with former, can pass in 
-    # #   your chat history to the model
-    # qa_chain = ConversationalRetrievalChain.from_llm(
-    #     llm=llm,
-    #     chain_type="stuff",
-    #     retriever=retriever,
-    #     combine_docs_chain_kwargs={"prompt": qa_prompt},
-    #     return_source_documents=True,
-    # )
-    # return qa_chain
 
+def build_history_prompt(hist):
+
+    if len(hist)>0:
+        past_qa=''
+        for turn in hist:
+            past_qa += f"<s>[INST] {turn[0].strip()} [/INST] {turn[1].strip()} </s>"
+
+        template = '<s>[INST] '
+        idx = past_qa.find(template) + len(template)
+        return past_qa[idx:] + '<s>[INST]'
+    else:
+        return ''
+    
 
 def get_answer(
     llm: HuggingFacePipeline,
     prompt_template: PromptTemplate,
     retriever,
     question: str,
-    # chat_history: list[tuple[str, str]],
+    chat_history: List[Tuple[str, str]],
 ):
     """Get an answer from a ConversationalRetrievalChain along with user question
     Args:
@@ -165,14 +180,19 @@ def get_answer(
         str: The answer to the question
     """
 
-    # Fix inputs to function get_answer() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    docs = retriever.get_relevant_documents(question)
-    # The context is a concatenation of the retrieved docs
-    context = "\n\n".join([doc.page_content for doc in docs])
-    # Populate the prompt with the context and question variables
-    prompt = prompt_template.format(context=context, question=question)
+    # Build past chat history     # Will need to look into hist format -> should be list of [(Q,A),(Q,A),....]      hist avilable in func below!!!!!!!!!!!!!!!!!!!!!!!
+    past_qa = build_history_prompt(chat_history)
     
-    result = llm.predict(prompt)
+    # Retrieve docs relevant to input question
+    docs = retriever.get_relevant_documents(question)
+    context = "\n\n".join([doc.page_content for doc in docs])
+
+    # Populate prompt template
+    prompt = prompt_template.format(PAST_QA=past_qa, CONTEXT=context, QUESTION=question)
+    
+    # Log LLM results into W&B
+    with wandb_tracing_enabled():
+        result = llm.predict(prompt)
 
     response = f"Answer:\t{result}"
 

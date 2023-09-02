@@ -82,7 +82,8 @@ class Chat:
             llm=self.llm,
             prompt_template=self.prompt_template,
             retriever=self.retriever,
-            question=question
+            question=question,
+            chat_history=history,
         )
     
         history.append((question, response))
@@ -128,12 +129,10 @@ with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
     # Whenever a user submits a question,
     # - input 1 - we create an object of the Chat class (ny passing the default config)
-    # - input 2 - we call the __call__ from the Chat object (need to pass the question, state, and hf api key)
-    # - and we then recieve an answer, that can be exposed in the UI (i.e. the chatbot box)
+    # - input 2 - we call the __call__ from the Chat object (need to pass the question, state (history), and hf api key)
+    # - input 3 - output of __call__ method (i.e. answer), that can be exposed in the UI (i.e. the chatbot box)
     question.submit(
-        Chat(
-            config=default_config,
-        ),
+        Chat(config=default_config,),
         [question, state, hf_api_key],
         [chatbot, state],
     )

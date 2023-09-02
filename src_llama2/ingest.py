@@ -122,17 +122,23 @@ def log_index(vector_store_dir: str, run: "wandb.run"):
     run.log_artifact(index_artifact)
 
 
-def log_prompt(prompt: dict, run: "wandb.run"):
-    """Log a prompt to wandb
+def log_prompt(prompt_system_file: pathlib.Path, 
+               prompt_user_file: pathlib.Path, 
+               run: "wandb.run"):
+    """Log a system and user prompt to wandb
 
     Args:
-        prompt (str): The prompt to log
+        prompt_system_file (pathlib.Path): The system prompt template to log
+        prompt_user_file (pathlib.Path): The user prompt template to log
         run (wandb.run): The wandb run to log the artifact to.
     """
-    prompt_artifact = wandb.Artifact(name="chat_prompt", type="prompt")
-    with prompt_artifact.new_file("prompt.json") as f:
-        f.write(json.dumps(prompt))
-    run.log_artifact(prompt_artifact)
+    system_prompt_artifact = wandb.Artifact(name="system_prompt_template", type="prompt")
+    system_prompt_artifact.add_file(local_path=prompt_system_file)
+    run.log_artifact(system_prompt_artifact)
+
+    user_prompt_artifact = wandb.Artifact(name="user_prompt_template", type="prompt")
+    user_prompt_artifact.add_file(local_path=prompt_user_file)
+    run.log_artifact(user_prompt_artifact)
 
 
 def ingest_data(
@@ -187,10 +193,16 @@ def get_parser():
         help="The directory to save or load the Chroma db to/from",
     )
     parser.add_argument(
-        "--prompt_file",
+        "--prompt_system_file",
         type=pathlib.Path,
-        default="./chat_prompt.json",
-        help="The path to the chat prompt to use",
+        default="./prompt_system_template.txt",
+        help="The path to the system prompt template to use",
+    )
+    parser.add_argument(
+        "--prompt_user_file",
+        type=pathlib.Path,
+        default="./prompt_user_template.txt",
+        help="The path to the user prompt template to use",
     )
     parser.add_argument(
         "--wandb_project",
@@ -219,7 +231,7 @@ def main():
     # Log artifacts to wandb
     log_dataset(documents, run)
     log_index(args.vector_store, run)
-    log_prompt(json.load(args.prompt_file.open("r")), run)
+    log_prompt(args.prompt_system_file, args.prompt_user_file, run)
     # Finish wandb run
     run.finish()
 
