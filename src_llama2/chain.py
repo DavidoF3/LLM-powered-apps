@@ -82,6 +82,35 @@ def init_model(wandb_run: wandb.run, hf_auth: str):
     return model.eval()
 
 
+def create_model_pipeline(wandb_run: wandb.run, hf_auth: str):
+    """Create model pipeline using HuggingFacePipeline
+    Args:
+        wandb_run (wandb.run): An active Weights & Biases run
+        hf_auth (str): Hugging Face authentication key to use the llama2 model
+    Returns:
+        llm: llm pipeline object
+    """
+
+    model = init_model(wandb_run, hf_auth)
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        wandb_run.config.llm_model_name,
+        use_auth_token=hf_auth
+        )
+
+    pipe = transformers.pipeline(
+        "text-generation", 
+        model=model, 
+        tokenizer=tokenizer, 
+        do_sample=True,           
+        temperature=wandb_run.config.chat_temperature,
+        repetition_penalty=wandb_run.config.repetition_penalty,   
+        max_new_tokens=wandb_run.config.max_new_tokens
+        )
+    llm = HuggingFacePipeline(pipeline=pipe)
+
+    return llm
+
+
 def load_chain(wandb_run: wandb.run, vector_store: Chroma, hf_auth: str):
     """Load a ConversationalQA chain from a config and a vector store
     Args:
@@ -99,22 +128,7 @@ def load_chain(wandb_run: wandb.run, vector_store: Chroma, hf_auth: str):
 
     # Setup Llama2 LLM model and tokeniser
     # - create objects of llama2 llm model and tokeniser
-    model = init_model(wandb_run, hf_auth)
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
-        wandb_run.config.llm_model_name,
-        use_auth_token=hf_auth
-        )
-
-    pipe = transformers.pipeline(
-        "text-generation", 
-        model=model, 
-        tokenizer=tokenizer, 
-        do_sample=True,           
-        temperature=wandb_run.config.chat_temperature,
-        repetition_penalty=wandb_run.config.repetition_penalty,   
-        max_new_tokens=wandb_run.config.max_new_tokens
-        )
-    llm = HuggingFacePipeline(pipeline=pipe)
+    llm = create_model_pipeline(wandb_run, hf_auth)
 
     # Load system prompt template artifact
     system_prompt_dir = wandb_run.use_artifact(
@@ -170,10 +184,12 @@ def get_answer(
     retriever,
     question: str,
     chat_history: List[Tuple[str, str]],
-):
+    ):
     """Get an answer from a ConversationalRetrievalChain along with user question
     Args:
-        chain (ConversationalRetrievalChain): A ConversationalRetrievalChain object
+        llm: llm pipeline to feed questions to
+        prompt_template: langchain prompt template to feed to llm
+        retriever: chroma object used to retrieve docs from similarity search
         question (str): The question to ask
         chat_history (list[tuple[str, str]]): A list of tuples of (question, answer)
     Returns:
@@ -189,7 +205,7 @@ def get_answer(
 
     # Populate prompt template
     prompt = prompt_template.format(PAST_QA=past_qa, CONTEXT=context, QUESTION=question)
-    
+    # print('******',prompt)
     # Log LLM results into W&B
     with wandb_tracing_enabled():
         result = llm.predict(prompt)
