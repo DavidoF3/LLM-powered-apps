@@ -1,0 +1,7 @@
+CONTEXT
+================
+Content: {CONTEXT}
+================
+Question: {QUESTION}
+================
+Final Answer in Markdown:

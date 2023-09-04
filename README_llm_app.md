@@ -1,6 +1,6 @@
 # Building a baseline LLM App
 
-Here we build a baseline application that exposes a chat interface to W&B users, where they can ask questions to the W&B bot.
+Here we detail the code of a baseline application that exposes a chat interface to W&B users, where they can ask questions to the W&B bot. This code can be found in the folder [src_llama2](/src_llama2/).
 
 # Step 1 - Ingestion
 

@@ -160,8 +160,13 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+.DS_store
+
 data/
 docs_sample/
 notebooks/edu
 notebooks/wandb
 src/chat_prompt.json
+src_llama2/artifacts
+src_llama2/vector_store
+src_llama2/wandb
