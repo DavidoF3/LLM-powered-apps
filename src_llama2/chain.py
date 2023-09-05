@@ -7,7 +7,6 @@ from langchain.chains import RetrievalQA
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.llms import HuggingFacePipeline
 from langchain.vectorstores import Chroma
-from prompts import load_chat_prompt
 import torch
 
 from langchain.callbacks import wandb_tracing_enabled
